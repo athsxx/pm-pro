@@ -1,6 +1,5 @@
 const path = require('path');
 const Database = require('better-sqlite3');
-const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const { ensureTablesForPhase2 } = require('./helpers');
 
@@ -57,6 +56,30 @@ function createTables(dbConn) {
       FOREIGN KEY (managerId) REFERENCES Users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS ProjectRisks (
+      id TEXT PRIMARY KEY,
+      projectId TEXT NOT NULL,
+      srNo TEXT,
+      process TEXT,
+      typeOfRisk TEXT,
+      riskIdentified TEXT,
+      likelihood1 TEXT,
+      consequence1 TEXT,
+      rpn1 TEXT,
+      controlsMitigation TEXT,
+      responsible TEXT,
+      timeFrame TEXT,
+      implementationStatus TEXT,
+      likelihood2 TEXT,
+      consequence2 TEXT,
+      rpn2 TEXT,
+      acceptable TEXT,
+      remarks TEXT,
+      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (projectId) REFERENCES Projects(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS Tasks (
       id TEXT PRIMARY KEY,
       projectId TEXT NOT NULL,
@@ -66,6 +89,7 @@ function createTables(dbConn) {
       assigneeId TEXT,
       status TEXT DEFAULT 'not_started',
       progress INTEGER DEFAULT 0,
+  remainingDays REAL,
       startDate TEXT,
   endDate TEXT,
   dueDate TEXT,
@@ -193,141 +217,82 @@ function createTables(dbConn) {
       // Backfill dueDate from endDate.
       dbConn.exec('UPDATE Tasks SET dueDate = endDate WHERE dueDate IS NULL');
     }
+
+    const hasRemainingDays = cols.some((c) => c.name === 'remainingDays');
+    if (!hasRemainingDays) {
+      dbConn.exec('ALTER TABLE Tasks ADD COLUMN remainingDays REAL');
+      // Default to duration for in-progress tasks when available.
+      dbConn.exec("UPDATE Tasks SET remainingDays = COALESCE(remainingDays, duration) WHERE status = 'in_progress' AND remainingDays IS NULL");
+    }
   } catch (_) {
     // ignore migration failures (fresh DBs will already have the column)
   }
 }
+
+const POC_SEED_USER_IDS = [
+  'a0000001-0001-4001-8001-000000000001',
+  'a0000001-0001-4001-8001-000000000002',
+  'a0000001-0001-4001-8001-000000000003',
+  'a0000001-0001-4001-8001-000000000004',
+  'a0000001-0001-4001-8001-000000000005',
+  'a0000001-0001-4001-8001-000000000006',
+  'a0000001-0001-4001-8001-000000000007',
+  'a0000001-0001-4001-8001-000000000008',
+];
 
 function seedIfEmpty(dbConn) {
   const row = dbConn.prepare('SELECT COUNT(*) as count FROM Users').get();
   if (row && row.count > 0) return;
 
   const now = new Date().toISOString();
-
-  const adminId = uuidv4();
-  const aliceId = uuidv4();
+  const plain = process.env.POC_DEFAULT_PASSWORD || 'pocchangeme';
+  const passwordHash = bcrypt.hashSync(plain, 10);
 
   const insertUser = dbConn.prepare(
     `INSERT INTO Users (id, name, email, password, role, costRate, overtimeRate, maxUnits, deviceToken, createdAt)
      VALUES (@id, @name, @email, @password, @role, @costRate, @overtimeRate, @maxUnits, @deviceToken, @createdAt)`
   );
 
-  const adminPasswordHash = bcrypt.hashSync('admin123', 10);
-  const alicePasswordHash = bcrypt.hashSync('password123', 10);
-
-  const tx = dbConn.transaction(() => {
-    insertUser.run({
-      id: adminId,
-      name: 'Admin',
-      email: 'admin@projectmanager.com',
-      password: adminPasswordHash,
+  const seeds = [
+    {
+      id: POC_SEED_USER_IDS[0],
+      name: 'Admin Person 1',
+      email: 'admin1@poc.local',
       role: 'admin',
       costRate: 120,
       overtimeRate: 180,
       maxUnits: 1,
-      deviceToken: null,
-      createdAt: now
-    });
-
-    insertUser.run({
-      id: aliceId,
-      name: 'Alice',
-      email: 'alice@team.com',
-      password: alicePasswordHash,
-      role: 'member',
-      costRate: 60,
-      overtimeRate: 90,
+    },
+    {
+      id: POC_SEED_USER_IDS[1],
+      name: 'Manager Person 1',
+      email: 'manager1@poc.local',
+      role: 'manager',
+      costRate: 100,
+      overtimeRate: 150,
       maxUnits: 1,
-      deviceToken: null,
-      createdAt: now
-    });
+    },
+    ...[1, 2, 3, 4, 5, 6].map((n) => ({
+      id: POC_SEED_USER_IDS[n + 1],
+      name: `Member Person ${n}`,
+      email: `member${n}@poc.local`,
+      role: 'member',
+      costRate: 80,
+      overtimeRate: 120,
+      maxUnits: 1,
+    })),
+  ];
 
-    const insertProject = dbConn.prepare(
-      `INSERT INTO Projects (id, name, description, startDate, endDate, status, managerId, createdAt)
-       VALUES (@id, @name, @description, @startDate, @endDate, @status, @managerId, @createdAt)`
-    );
-
-    const p1 = { id: uuidv4(), name: 'Website Relaunch', description: 'Q2 marketing site refresh', startDate: daysFromNowISO(0), endDate: daysFromNowISO(45), status: 'active', managerId: adminId, createdAt: now };
-    const p2 = { id: uuidv4(), name: 'Mobile App MVP', description: 'Internal beta for field team', startDate: daysFromNowISO(0), endDate: daysFromNowISO(60), status: 'active', managerId: adminId, createdAt: now };
-
-    insertProject.run(p1);
-    insertProject.run(p2);
-
-    // Default calendars
-    const insertCalendar = dbConn.prepare(
-      `INSERT INTO ProjectCalendars (id, projectId, name, workDays, workHoursPerDay, holidays)
-       VALUES (@id, @projectId, @name, @workDays, @workHoursPerDay, @holidays)`
-    );
-    insertCalendar.run({ id: uuidv4(), projectId: p1.id, name: 'Default', workDays: '1,2,3,4,5', workHoursPerDay: 8, holidays: '[]' });
-    insertCalendar.run({ id: uuidv4(), projectId: p2.id, name: 'Default', workDays: '1,2,3,4,5', workHoursPerDay: 8, holidays: '[]' });
-
-    const insertTask = dbConn.prepare(
-      `INSERT INTO Tasks (
-        id, projectId, parentId, title, description, assigneeId, status, progress,
-  startDate, endDate, dueDate, duration, schedulingMode, constraintType, isInactive, isRecurring, recurrencePattern,
-        costPerHour, fixedCost, actualCost, baselineCost, createdAt
-      ) VALUES (
-        @id, @projectId, @parentId, @title, @description, @assigneeId, @status, @progress,
-  @startDate, @endDate, @dueDate, @duration, @schedulingMode, @constraintType, @isInactive, @isRecurring, @recurrencePattern,
-        @costPerHour, @fixedCost, @actualCost, @baselineCost, @createdAt
-      )`
-    );
-
-    const statuses = [
-      { status: 'not_started', progress: 0 },
-      { status: 'in_progress', progress: 20 },
-      { status: 'in_progress', progress: 55 },
-      { status: 'blocked', progress: 10 },
-      { status: 'done', progress: 100 }
-    ];
-
-    const makeTasksForProject = (project, offsetDays) => {
-      for (let i = 1; i <= 5; i++) {
-        const s = statuses[(i - 1) % statuses.length];
-        const start = daysFromNowISO(offsetDays + (i - 1) * 3);
-        const duration = 3;
-        const end = daysFromNowISO(offsetDays + (i - 1) * 3 + duration);
-        const baselineCost = 300 * i;
-        const actualCost = s.progress > 0 ? baselineCost * (s.progress / 100) * 1.05 : 0;
-
-        insertTask.run({
-          id: uuidv4(),
-          projectId: project.id,
-          parentId: null,
-          title: `Task ${i}: ${project.name}`,
-          description: `Demo task ${i} for ${project.name}`,
-          assigneeId: aliceId,
-          status: s.status,
-          progress: s.progress,
-          startDate: start,
-          endDate: null,
-          dueDate: end,
-          duration,
-          schedulingMode: 'auto',
-          constraintType: 'ASAP',
-          isInactive: 0,
-          isRecurring: 0,
-          recurrencePattern: null,
-          costPerHour: 60,
-          fixedCost: 50,
-          actualCost,
-          baselineCost,
-          createdAt: now
-        });
-      }
-    };
-
-    makeTasksForProject(p1, 0);
-    makeTasksForProject(p2, 5);
-  });
-
-  tx();
-}
-
-function daysFromNowISO(days) {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString();
+  dbConn.transaction(() => {
+    for (const u of seeds) {
+      insertUser.run({
+        ...u,
+        password: passwordHash,
+        deviceToken: null,
+        createdAt: now,
+      });
+    }
+  })();
 }
 
 module.exports = {

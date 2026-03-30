@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Projects - Clean Utility</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#6b38d4", "background-light": "#f6f6f8", "background-dark": "#161121", "text-main": "#334155", "text-muted": "#94A3B8", "border-light": "#E2E8F0", "secondary-container": "#c9b3fd", "surface-container-highest": "#e5e2e1", "on-secondary-fixed-variant": "#4e3b7c", "on-primary": "#ffffff", "inverse-primary": "#d0bcff", "surface-tint": "#6d3bd7", "surface-container": "#f0edec", "on-secondary-container": "#544183", "on-error": "#ffffff", "inverse-on-surface": "#f3f0ef", "surface-bright": "#fcf9f8", "on-primary-container": "#fffbff", "on-surface-variant": "#494454", outline: "#7b7486", "surface-variant": "#e5e2e1", tertiary: "#855000", "on-secondary": "#ffffff", "surface-container-high": "#ebe7e7", "on-tertiary-container": "#fffbff", "on-primary-fixed-variant": "#5516be", "surface-dim": "#dcd9d9", "on-tertiary-fixed": "#2c1700", "tertiary-container": "#a76500", "surface-container-low": "#f6f3f2", "on-primary-fixed": "#23005c", "on-secondary-fixed": "#220b4e", "tertiary-fixed": "#ffdcbb", "on-tertiary-fixed-variant": "#673d00", "primary-fixed": "#e9ddff", "secondary-fixed-dim": "#d0bcff", secondary: "#665396", "error-container": "#ffdad6", "inverse-surface": "#313030", "on-background": "#1c1b1b", "secondary-fixed": "#e9ddff", "on-tertiary": "#ffffff", "tertiary-fixed-dim": "#ffb869", "on-surface": "#1c1b1b", background: "#fcf9f8", surface: "#fcf9f8", "surface-container-lowest": "#ffffff", "primary-fixed-dim": "#d0bcff", "outline-variant": "#cbc3d7", "on-error-container": "#93000a", error: "#ba1a1a", "primary-container": "#8455ef"}, fontFamily: {display: "Manrope", heading: ["Outfit", "sans-serif"], headline: ["Manrope"], body: ["Inter"], label: ["Inter"]}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}}}};</script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, .heading-font {
+            font-family: 'Outfit', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-slate-200 min-h-screen flex justify-center">
+<div class="w-full max-w-md bg-background-light dark:bg-background-dark min-h-screen flex flex-col relative overflow-hidden">
+<!-- Header -->
+<header class="sticky top-0 z-10 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md px-6 py-5 flex items-center justify-between">
+<h1 class="text-2xl font-semibold heading-font text-slate-900 dark:text-white">Projects</h1>
+<button class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-border-light dark:border-slate-700 flex items-center justify-center text-primary shadow-sm active:bg-slate-50 dark:active:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</header>
+<!-- Main Content (Scrollable List) -->
+<main class="flex-1 px-4 pb-28 space-y-4 overflow-y-auto">
+<!-- Project Card 1 -->
+<button class="w-full text-left bg-white dark:bg-slate-800 rounded-lg p-6 border border-border-light dark:border-slate-700 active:bg-slate-50 dark:active:bg-slate-750 transition-colors block">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="text-lg font-semibold heading-font text-slate-900 dark:text-white mb-1">Q3 Marketing Campaign</h2>
+<div class="flex items-center text-sm font-medium text-text-muted dark:text-slate-400 gap-1.5">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>3 pending tasks</span>
+</div>
+</div>
+<span class="text-xl font-bold heading-font text-primary">75%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 75%;"></div>
+</div>
+</button>
+<!-- Project Card 2 -->
+<button class="w-full text-left bg-white dark:bg-slate-800 rounded-lg p-6 border border-border-light dark:border-slate-700 active:bg-slate-50 dark:active:bg-slate-750 transition-colors block">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="text-lg font-semibold heading-font text-slate-900 dark:text-white mb-1">Website Redesign</h2>
+<div class="flex items-center text-sm font-medium text-text-muted dark:text-slate-400 gap-1.5">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>12 pending tasks</span>
+</div>
+</div>
+<span class="text-xl font-bold heading-font text-slate-700 dark:text-slate-300">20%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 20%;"></div>
+</div>
+</button>
+<!-- Project Card 3 -->
+<button class="w-full text-left bg-white dark:bg-slate-800 rounded-lg p-6 border border-border-light dark:border-slate-700 active:bg-slate-50 dark:active:bg-slate-750 transition-colors block">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="text-lg font-semibold heading-font text-slate-900 dark:text-white mb-1">App Security Audit</h2>
+<div class="flex items-center text-sm font-medium text-text-muted dark:text-slate-400 gap-1.5">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>1 pending task</span>
+</div>
+</div>
+<span class="text-xl font-bold heading-font text-primary">90%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 90%;"></div>
+</div>
+</button>
+<!-- Project Card 4 (Empty/Initial State) -->
+<button class="w-full text-left bg-white dark:bg-slate-800 rounded-lg p-6 border border-dashed border-slate-300 dark:border-slate-600 active:bg-slate-50 dark:active:bg-slate-750 transition-colors block flex items-center justify-center min-h-[120px]">
+<div class="flex flex-col items-center justify-center text-text-muted dark:text-slate-400">
+<span class="material-symbols-outlined mb-2 text-2xl">add_circle</span>
+<span class="text-sm font-medium">Create New Project</span>
+</div>
+</button>
+</main>
+<!-- Bottom Navigation -->
+<div class="absolute bottom-0 w-full bg-white dark:bg-slate-900 border-t border-border-light dark:border-slate-800 pb-safe pt-2 px-4 z-20">
+<div class="flex gap-2 pb-3">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">calendar_today</span>
+</div>
+<p class="text-[11px] font-semibold tracking-wide uppercase">Today</p>
+</a>
+<!-- Active Nav Item -->
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary dark:text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">folder</span>
+</div>
+<p class="text-[11px] font-semibold tracking-wide uppercase">Projects</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</div>
+<p class="text-[11px] font-semibold tracking-wide uppercase">Settings</p>
+</a>
+</div>
+</div>
+</div>
+</body></html>

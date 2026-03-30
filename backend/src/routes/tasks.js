@@ -4,6 +4,7 @@ const { uuidv4, toBoolInt } = require('../db/helpers');
 const { getDb } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole } = require('../middleware/requireRole');
+const { mirrorMemberTaskToAdmin } = require('../services/adminMirror');
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -12,27 +13,7 @@ function canMemberEditTask(task, userId) {
   return task && task.assigneeId === userId;
 }
 
-function memberSafeUpdate(body, existing) {
-  // Members can only update limited fields.
-  const allowed = {
-    title: body.title,
-    description: body.description,
-    status: body.status,
-    progress: body.progress,
-    startDate: body.startDate,
-  dueDate: body.dueDate ?? body.endDate,
-    duration: body.duration,
-    costPerHour: body.costPerHour,
-    fixedCost: body.fixedCost
-  };
-
-  // Only apply if provided
-  const next = { ...existing };
-  for (const [k, v] of Object.entries(allowed)) {
-    if (v !== undefined) next[k] = v;
-  }
-  return next;
-}
+const MEMBER_PUT_ALLOWED_STATUS = ['not_started', 'in_progress', 'done', 'blocked'];
 
 router.get('/', (req, res) => {
   try {
@@ -60,7 +41,11 @@ router.get('/', (req, res) => {
 router.get('/my', (req, res) => {
   try {
     const db = getDb();
-    const rows = db.prepare('SELECT * FROM Tasks WHERE assigneeId = ? ORDER BY endDate ASC').all(req.user.id);
+    const rows = db
+      .prepare(
+        'SELECT * FROM Tasks WHERE assigneeId = ? ORDER BY (dueDate IS NULL), dueDate ASC, createdAt DESC'
+      )
+      .all(req.user.id);
   return res.json(rows.map((t) => ({ ...t, endDate: t.dueDate || t.endDate || null })));
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -143,24 +128,34 @@ router.put('/:id', (req, res) => {
 
     if (req.user.role === 'member') {
       if (!canMemberEditTask(existing, req.user.id)) return res.status(403).json({ error: 'Forbidden' });
-      const next = memberSafeUpdate(body, existing);
-      db.prepare(
-  `UPDATE Tasks SET title = ?, description = ?, status = ?, progress = ?, startDate = ?, dueDate = ?, duration = ?, costPerHour = ?, fixedCost = ?
-         WHERE id = ?`
-      ).run(
-        next.title,
-        next.description,
-        next.status,
-        next.progress,
-        next.startDate,
-  (body.dueDate ?? body.endDate ?? existing.dueDate ?? existing.endDate ?? null),
-        next.duration,
-        next.costPerHour,
-        next.fixedCost,
+
+      const { description, status, progress } = body;
+
+      if (status !== undefined && !MEMBER_PUT_ALLOWED_STATUS.includes(status)) {
+        return res.status(400).json({
+          error: 'status must be one of: not_started, in_progress, done, blocked',
+        });
+      }
+      if (progress !== undefined) {
+        const p = Number(progress);
+        if (!Number.isFinite(p) || p < 0 || p > 100) {
+          return res.status(400).json({ error: 'progress must be between 0 and 100' });
+        }
+      }
+
+      const nextDescription = description !== undefined ? description : existing.description;
+      const nextStatus = status !== undefined ? status : existing.status;
+      const nextProgress = progress !== undefined ? Number(progress) : existing.progress;
+
+      db.prepare('UPDATE Tasks SET description = ?, status = ?, progress = ? WHERE id = ?').run(
+        nextDescription,
+        nextStatus,
+        nextProgress,
         req.params.id
       );
 
       req.app.get('io')?.emit('task:updated', { taskId: existing.id, projectId: existing.projectId });
+      void mirrorMemberTaskToAdmin(db, req.params.id, req.user.id);
       return res.json({ ok: true });
     }
 
@@ -171,7 +166,7 @@ router.put('/:id', (req, res) => {
     db.prepare(
       `UPDATE Tasks SET
         projectId = ?, parentId = ?, title = ?, description = ?, assigneeId = ?, status = ?, progress = ?,
-        startDate = ?, dueDate = ?, duration = ?, schedulingMode = ?, constraintType = ?,
+        remainingDays = ?, startDate = ?, dueDate = ?, duration = ?, schedulingMode = ?, constraintType = ?,
         isInactive = ?, isRecurring = ?, recurrencePattern = ?,
         costPerHour = ?, fixedCost = ?, actualCost = ?, baselineCost = ?
        WHERE id = ?`
@@ -183,6 +178,7 @@ router.put('/:id', (req, res) => {
       body.assigneeId || null,
       body.status || existing.status,
       body.progress ?? existing.progress,
+      body.remainingDays ?? existing.remainingDays ?? null,
       body.startDate || null,
       body.dueDate || body.endDate || existing.dueDate || existing.endDate || null,
       body.duration ?? existing.duration,
@@ -222,6 +218,114 @@ router.patch('/:id/progress', (req, res) => {
 
     db.prepare('UPDATE Tasks SET progress = ? WHERE id = ?').run(progress, req.params.id);
     req.app.get('io')?.emit('task:updated', { taskId: task.id, projectId: task.projectId });
+
+    void mirrorMemberTaskToAdmin(db, req.params.id, req.user.id);
+
+    // Create an in-app notification for admins/managers.
+    // (Push delivery will use deviceToken later.)
+    try {
+      const { uuidv4 } = require('../db/helpers');
+      const actor = req.user?.name || 'A team member';
+      const rows = db.prepare("SELECT id FROM Users WHERE role IN ('admin','manager')").all();
+      const insert = db.prepare(
+        'INSERT INTO Notifications (id, userId, type, title, body, taskId, isRead) VALUES (?, ?, ?, ?, ?, ?, 0)'
+      );
+      for (const r of rows) {
+        insert.run(
+          uuidv4(),
+          r.id,
+          'info',
+          'Task progress updated',
+          `${actor} updated progress to ${progress}%: ${task.title}`,
+          task.id
+        );
+      }
+    } catch (_) {
+      // best-effort
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Mobile-friendly member update: status (NS/IP/CO), progress, and remainingDays (for in_progress)
+router.patch('/:id/member-update', (req, res) => {
+  try {
+    const db = getDb();
+    const task = db.prepare('SELECT * FROM Tasks WHERE id = ?').get(req.params.id);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    if (req.user.role === 'member' && !canMemberEditTask(task, req.user.id)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { status, progress, remainingDays } = req.body || {};
+
+    if (status !== undefined && !MEMBER_PUT_ALLOWED_STATUS.includes(status)) {
+      return res.status(400).json({
+        error: 'status must be one of: not_started, in_progress, done, blocked',
+      });
+    }
+    if (progress !== undefined && (progress < 0 || progress > 100)) {
+      return res.status(400).json({ error: 'progress must be between 0 and 100' });
+    }
+    if (remainingDays !== undefined && (Number.isNaN(Number(remainingDays)) || Number(remainingDays) < 0)) {
+      return res.status(400).json({ error: 'remainingDays must be a number >= 0' });
+    }
+
+    const nextStatus = status ?? task.status;
+    const nextProgress = progress ?? task.progress;
+
+    if (remainingDays !== undefined && nextStatus !== 'in_progress') {
+      return res.status(400).json({ error: 'remainingDays can only be set for in_progress tasks' });
+    }
+
+    const nextRemainingDays =
+      remainingDays !== undefined
+        ? Number(remainingDays)
+        : (task.remainingDays ?? null);
+
+    db.prepare('UPDATE Tasks SET status = ?, progress = ?, remainingDays = ? WHERE id = ?').run(
+      nextStatus,
+      nextProgress,
+      nextRemainingDays,
+      task.id
+    );
+
+    req.app.get('io')?.emit('task:updated', { taskId: task.id, projectId: task.projectId });
+
+    void mirrorMemberTaskToAdmin(db, req.params.id, req.user.id);
+
+    // Best-effort in-app notification for admins/managers.
+    try {
+      const { uuidv4 } = require('../db/helpers');
+      const actor = req.user?.name || 'A team member';
+      const rows = db.prepare("SELECT id FROM Users WHERE role IN ('admin','manager')").all();
+      const insert = db.prepare(
+        'INSERT INTO Notifications (id, userId, type, title, body, taskId, isRead) VALUES (?, ?, ?, ?, ?, ?, 0)'
+      );
+
+      const parts = [];
+      if (status !== undefined) parts.push(`status → ${nextStatus}`);
+      if (progress !== undefined) parts.push(`progress → ${nextProgress}%`);
+      if (remainingDays !== undefined) parts.push(`remaining → ${nextRemainingDays} day(s)`);
+
+      for (const r of rows) {
+        insert.run(
+          uuidv4(),
+          r.id,
+          'info',
+          'Task updated',
+          `${actor} updated ${parts.join(', ')}: ${task.title}`,
+          task.id
+        );
+      }
+    } catch (_) {
+      // best-effort
+    }
+
     return res.json({ ok: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -241,8 +345,39 @@ router.patch('/:id/status', (req, res) => {
     const { status } = req.body || {};
     if (!status) return res.status(400).json({ error: 'status is required' });
 
+    if (req.user.role === 'member' && !MEMBER_PUT_ALLOWED_STATUS.includes(status)) {
+      return res.status(400).json({
+        error: 'status must be one of: not_started, in_progress, done, blocked',
+      });
+    }
+
     db.prepare('UPDATE Tasks SET status = ? WHERE id = ?').run(status, req.params.id);
     req.app.get('io')?.emit('task:updated', { taskId: task.id, projectId: task.projectId });
+
+    void mirrorMemberTaskToAdmin(db, req.params.id, req.user.id);
+
+    // Best-effort in-app notification for admins/managers.
+    try {
+      const { uuidv4 } = require('../db/helpers');
+      const actor = req.user?.name || 'A team member';
+      const rows = db.prepare("SELECT id FROM Users WHERE role IN ('admin','manager')").all();
+      const insert = db.prepare(
+        'INSERT INTO Notifications (id, userId, type, title, body, taskId, isRead) VALUES (?, ?, ?, ?, ?, ?, 0)'
+      );
+      for (const r of rows) {
+        insert.run(
+          uuidv4(),
+          r.id,
+          'info',
+          'Task status updated',
+          `${actor} changed status to ${status}: ${task.title}`,
+          task.id
+        );
+      }
+    } catch (_) {
+      // best-effort
+    }
+
     return res.json({ ok: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });

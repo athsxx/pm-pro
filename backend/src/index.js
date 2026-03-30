@@ -31,6 +31,7 @@ initDatabase();
 // Mount routes (Phase 2 will implement the files; for now mount if present)
 const routeModules = [
   ['auth', './routes/auth'],
+  ['users', './routes/users'],
   ['projects', './routes/projects'],
   ['tasks', './routes/tasks'],
   ['comments', './routes/comments'],
@@ -41,7 +42,8 @@ const routeModules = [
   ['baselines', './routes/baselines'],
   ['calendar', './routes/calendar'],
   ['reports', './routes/reports'],
-  ['mood', './routes/mood']
+  ['mood', './routes/mood'],
+  ['sync', './routes/sync'],
 ];
 
 for (const [name, modulePath] of routeModules) {
@@ -77,6 +79,8 @@ app.use((err, req, res, next) => {
 });
 
 const port = Number(process.env.PORT || 3001);
+/** Bind all interfaces so Android emulator can reach the host via http://10.0.2.2:PORT */
+const host = process.env.HOST || '0.0.0.0';
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -97,7 +101,13 @@ if (typeof startDeadlineReminderJob === 'function') {
   startDeadlineReminderJob({ io });
 }
 
-server.listen(port, () => {
+server.listen(port, host, () => {
   // eslint-disable-next-line no-console
-  console.log(`PM Pro backend listening on http://localhost:${port}`);
+  console.log(
+    `PM Pro backend listening on http://localhost:${port} (bound ${host}; emulator: http://10.0.2.2:${port})`
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    'ProTrack UI: in a second terminal, run `npm run dev` in the protrack-desktop folder, then open http://localhost:5173'
+  );
 });

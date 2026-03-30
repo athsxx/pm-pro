@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Clean Utility - Notifications</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#6b38d4", "background-light": "#f6f6f8", "background-dark": "#161121", surface: "#fcf9f8", "surface-dark": "#1e182d", "text-main": "#334155", "text-main-dark": "#e2e8f0", "text-muted": "#94a3b8", "border-light": "#e2e8f0", "border-dark": "#334155", "secondary-container": "#c9b3fd", "surface-container-highest": "#e5e2e1", "on-secondary-fixed-variant": "#4e3b7c", "on-primary": "#ffffff", "inverse-primary": "#d0bcff", "surface-tint": "#6d3bd7", "surface-container": "#f0edec", "on-secondary-container": "#544183", "on-error": "#ffffff", "inverse-on-surface": "#f3f0ef", "surface-bright": "#fcf9f8", "on-primary-container": "#fffbff", "on-surface-variant": "#494454", outline: "#7b7486", "surface-variant": "#e5e2e1", tertiary: "#855000", "on-secondary": "#ffffff", "surface-container-high": "#ebe7e7", "on-tertiary-container": "#fffbff", "on-primary-fixed-variant": "#5516be", "surface-dim": "#dcd9d9", "on-tertiary-fixed": "#2c1700", "tertiary-container": "#a76500", "surface-container-low": "#f6f3f2", "on-primary-fixed": "#23005c", "on-secondary-fixed": "#220b4e", "tertiary-fixed": "#ffdcbb", "on-tertiary-fixed-variant": "#673d00", "primary-fixed": "#e9ddff", "secondary-fixed-dim": "#d0bcff", secondary: "#665396", "error-container": "#ffdad6", "inverse-surface": "#313030", "on-background": "#1c1b1b", "secondary-fixed": "#e9ddff", "on-tertiary": "#ffffff", "tertiary-fixed-dim": "#ffb869", "on-surface": "#1c1b1b", background: "#fcf9f8", "surface-container-lowest": "#ffffff", "primary-fixed-dim": "#d0bcff", "outline-variant": "#cbc3d7", "on-error-container": "#93000a", error: "#ba1a1a", "primary-container": "#8455ef"}, fontFamily: {display: "Manrope", headline: ["Manrope"], body: ["Inter"], label: ["Inter"]}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}}}};</script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-text-main-dark h-screen w-full overflow-hidden flex flex-col antialiased">
+<!-- Sticky Top Header -->
+<header class="sticky top-0 z-10 flex items-center justify-between px-6 py-5 bg-surface dark:bg-surface-dark border-b border-border-light dark:border-border-dark shrink-0">
+<h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Inbox</h1>
+<button class="text-primary font-semibold text-sm hover:text-primary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 rounded px-2 py-1 -mr-2">
+            Mark all read
+        </button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto">
+<!-- Notification List -->
+<div class="flex flex-col">
+<!-- Item 1: Unread, Normal -->
+<a class="relative flex items-start gap-4 p-5 border-b border-border-light dark:border-border-dark bg-surface dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors active:bg-slate-100 dark:active:bg-slate-800 block group" href="#">
+<!-- Unread Indicator -->
+<div class="absolute top-7 left-3 w-2 h-2 rounded-full bg-primary mt-1"></div>
+<!-- Content -->
+<div class="flex-1 pl-4 flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">Project Alpha Launch</h3>
+<span class="text-xs font-medium text-text-muted shrink-0 whitespace-nowrap">10m ago</span>
+</div>
+<p class="text-sm font-medium text-text-main dark:text-text-main-dark">Assigned a new task: Review final assets</p>
+</div>
+</a>
+<!-- Item 2: Unread, Urgent/Overdue -->
+<a class="relative flex items-start gap-4 p-5 border-b border-border-light dark:border-border-dark bg-surface dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors active:bg-slate-100 dark:active:bg-slate-800 block group" href="#">
+<!-- Unread Indicator -->
+<div class="absolute top-7 left-3 w-2 h-2 rounded-full bg-primary mt-1"></div>
+<!-- Content -->
+<div class="flex-1 pl-4 flex flex-col gap-1.5">
+<div class="flex items-center justify-between gap-2">
+<div class="flex items-center gap-2 flex-wrap">
+<h3 class="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">Submit Q3 Report</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">
+                                Overdue
+                            </span>
+</div>
+<span class="text-xs font-medium text-text-muted shrink-0 whitespace-nowrap">1h ago</span>
+</div>
+<p class="text-sm font-medium text-text-main dark:text-text-main-dark">Deadline passed</p>
+</div>
+</a>
+<!-- Item 3: Read, Normal -->
+<a class="relative flex items-start gap-4 p-5 border-b border-border-light dark:border-border-dark bg-surface dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors active:bg-slate-100 dark:active:bg-slate-800 block group opacity-80" href="#">
+<!-- No Unread Indicator -->
+<div class="w-2 h-2 absolute top-7 left-3 opacity-0"></div>
+<!-- Content -->
+<div class="flex-1 pl-4 flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-base font-semibold text-slate-700 dark:text-slate-300 leading-tight">Weekly Sync</h3>
+<span class="text-xs font-medium text-text-muted shrink-0 whitespace-nowrap">Yesterday</span>
+</div>
+<p class="text-sm font-normal text-slate-500 dark:text-slate-400">Mentioned you in a comment</p>
+</div>
+</a>
+<!-- Item 4: Read, System -->
+<a class="relative flex items-start gap-4 p-5 border-b border-border-light dark:border-border-dark bg-surface dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors active:bg-slate-100 dark:active:bg-slate-800 block group opacity-80" href="#">
+<!-- No Unread Indicator -->
+<div class="w-2 h-2 absolute top-7 left-3 opacity-0"></div>
+<!-- Content -->
+<div class="flex-1 pl-4 flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2">
+<h3 class="text-base font-semibold text-slate-700 dark:text-slate-300 leading-tight">System Update</h3>
+<span class="text-xs font-medium text-text-muted shrink-0 whitespace-nowrap">Oct 24</span>
+</div>
+<p class="text-sm font-normal text-slate-500 dark:text-slate-400">App updated to version 2.1.0</p>
+</div>
+</a>
+<!-- Example Empty State (Hidden by default, shown here for structure) -->
+<!-- 
+            <div class="flex flex-col items-center justify-center h-64 px-6 text-center">
+                <span class="material-symbols-outlined text-4xl text-text-muted mb-3 opacity-50">inbox</span>
+                <p class="text-lg font-medium text-text-muted">Inbox zero.</p>
+                <p class="text-sm text-slate-400 mt-1">You're all caught up.</p>
+            </div> 
+            -->
+<div class="h-24"></div> <!-- Spacer for bottom nav -->
+</div>
+</main>
+<!-- Shared Bottom Nav Bar -->
+<nav class="fixed bottom-0 w-full flex gap-2 border-t border-border-light dark:border-border-dark bg-surface dark:bg-surface-dark px-4 pb-safe pt-2 z-20 pb-4" style="padding-bottom: env(safe-area-inset-bottom, 1rem);">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-lg text-text-muted hover:text-slate-900 dark:hover:text-slate-100 transition-colors py-2" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-2xl filled-icon">calendar_today</span>
+</div>
+<p class="text-[11px] font-bold leading-normal tracking-wide uppercase">Today</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-lg text-text-muted hover:text-slate-900 dark:hover:text-slate-100 transition-colors py-2" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-2xl">folder</span>
+</div>
+<p class="text-[11px] font-bold leading-normal tracking-wide uppercase">Projects</p>
+</a>
+<!-- Active Nav Item -->
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-lg text-primary py-2" href="#">
+<div class="flex h-8 items-center justify-center relative">
+<span class="material-symbols-outlined text-2xl filled-icon">notifications</span>
+<!-- Badge for bottom nav -->
+<span class="absolute top-1 right-0 w-2 h-2 rounded-full bg-red-500 border-2 border-surface dark:border-surface-dark"></span>
+</div>
+<p class="text-[11px] font-bold leading-normal tracking-wide uppercase">Inbox</p>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,11 @@
+{
+  "appId": "com.athsxx.pmpro",
+  "appName": "PM Pro",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

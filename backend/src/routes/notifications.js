@@ -18,6 +18,16 @@ router.get('/', (req, res) => {
   }
 });
 
+router.patch('/read-all', (req, res) => {
+  try {
+    const db = getDb();
+    db.prepare('UPDATE Notifications SET isRead = 1 WHERE userId = ? AND isRead = 0').run(req.user.id);
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 router.patch('/:id/read', (req, res) => {
   try {
     const db = getDb();

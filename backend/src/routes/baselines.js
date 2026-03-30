@@ -5,7 +5,7 @@ const { getDb } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole } = require('../middleware/requireRole');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 router.use(authenticateToken);
 
 // This router supports both:
